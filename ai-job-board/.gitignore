@@ -33,4 +33,4 @@ build/
 ### VS Code ###
 .vscode/
 # Yamal file for key
-*.yml
+#*.yml
