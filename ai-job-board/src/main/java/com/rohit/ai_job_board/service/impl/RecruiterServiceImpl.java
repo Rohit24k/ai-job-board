@@ -3,11 +3,13 @@ package com.rohit.ai_job_board.service.impl;
 import com.rohit.ai_job_board.dto.response.CandidateApplicationResponse;
 import com.rohit.ai_job_board.dto.response.RecentApplicationDto;
 import com.rohit.ai_job_board.dto.response.RecruiterDashboardResponse;
+import com.rohit.ai_job_board.entity.Jobs;
 import com.rohit.ai_job_board.entity.Resume;
 import com.rohit.ai_job_board.entity.User;
 import com.rohit.ai_job_board.enums.ApplicationStatus;
 import com.rohit.ai_job_board.enums.JobStatus;
 import com.rohit.ai_job_board.exception.ResourceAlreadyExistsException;
+import com.rohit.ai_job_board.repository.ApplicationRepository;
 import com.rohit.ai_job_board.repository.JobRepository;
 import com.rohit.ai_job_board.repository.ResumeRepository;
 import com.rohit.ai_job_board.repository.UserRepository;
@@ -15,8 +17,10 @@ import com.rohit.ai_job_board.service.RecruiterService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+
 
 import java.util.List;
 
@@ -29,25 +33,42 @@ public class RecruiterServiceImpl implements RecruiterService {
     private UserRepository userRepository;
     @Autowired
     private JobRepository jobRepository;
-
+    @Autowired
+    private ApplicationRepository applicationRepository;
 
     @Override
     public List<CandidateApplicationResponse> getApplications(Long jobId) {
 
-        return resumeRepository
-                .findByJobIdOrderByMatchScoreDesc(jobId)
-                .stream()
-                .map(r -> CandidateApplicationResponse.builder()
-                        .resumeId(r.getId())
-                        .candidateName(r.getCandidateName())
-                        .matchScore(r.getMatchScore())
-                        .summary(r.getSummary())
-                        .uploadedAt(r.getUploadedAt())
-                        .status(r.getStatus())
-                        .build())
-                .toList();
+        // return applicationRepository
+        //         .findByCandidateOrderByAppliedAtDesc(jobId)
+        //         .stream()
+        //         .map(r -> CandidateApplicationResponse.builder()
+        //                 .resumeId(r.getId())
+        //                 .candidateName(r.getCandidateName())
+        //                 .matchScore(r.getMatchScore())
+        //                 .summary(r.getSummary())
+        //                 .uploadedAt(r.getUploadedAt())
+        //                 .status(r.getStatus())
+        //                 .build())
+        //         .toList();
+        return null;
     }
+private User getLoggedInCandidate() {
 
+    Authentication authentication =
+            SecurityContextHolder
+                    .getContext()
+                    .getAuthentication();
+
+    String email = authentication.getName();
+
+    return userRepository
+            .findByEmail(email)
+            .orElseThrow(() ->
+                    new ResourceAlreadyExistsException(
+                            "Candidate not found"
+                    ));
+}
     @Override
     public void updateApplicationStatus(
             Long applicationId,
@@ -57,33 +78,32 @@ public class RecruiterServiceImpl implements RecruiterService {
                 .getAuthentication()
                 .getName();
 
-//        User recruiter = userRepository.findByEmail(email)
-//                .orElseThrow(() -> new ResourceAlreadyExistsException("User Not Found"));
+       User recruiter = userRepository.findByEmail(email)
+               .orElseThrow(() -> new ResourceAlreadyExistsException("User Not Found"));
 
-//        Resume application = resumeRepository.findById(applicationId)
-//                .orElseThrow();
+       
         Resume application =
                 resumeRepository.findById(applicationId)
                         .orElseThrow(() ->
                                 new ResourceAlreadyExistsException(
                                         "Application not found"));
-//        if (!application.getJob()
-//                .getRecruiter()
-//                .getId()
-//                .equals(recruiter.getId())) {
-//
-//            throw new AccessDeniedException(
-//                    "You are not allowed to update this application.");
-//        }
+       if (!application.getJob()
+               .getRecruiter()
+               .getId()
+               .equals(recruiter.getId())) {
+
+           throw new AccessDeniedException(
+                   "You are not allowed to update this application.");
+       }
 
         application.setStatus(status);
         resumeRepository.save(application);
 
 
 
-//        application.setStatus(status);
-//
-//        resumeRepository.save(application);
+       application.setStatus(status);
+
+       resumeRepository.save(application);
 
     }
 

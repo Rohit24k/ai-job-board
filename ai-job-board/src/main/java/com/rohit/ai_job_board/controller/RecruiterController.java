@@ -4,6 +4,8 @@ import com.rohit.ai_job_board.dto.response.CandidateApplicationResponse;
 import com.rohit.ai_job_board.dto.response.RecruiterDashboardResponse;
 import com.rohit.ai_job_board.service.RecruiterService;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -17,7 +19,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class RecruiterController {
 
-    private final RecruiterService recruiterService;
+    @Autowired
+    private RecruiterService recruiterService;
 
     @GetMapping("/jobs/{jobId}/applications")
     public ResponseEntity<List<CandidateApplicationResponse>>

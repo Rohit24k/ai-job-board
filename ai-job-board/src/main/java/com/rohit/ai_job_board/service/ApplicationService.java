@@ -11,7 +11,7 @@ public interface ApplicationService {
 
     ApplicationResponse apply( MultipartFile file,Long jobId) throws IOException;
 
-    List<CandidateApplicationDto> myApplications();
+    // List<CandidateApplicationDto> myApplications();
 
     // ResumeAnalysisResponse getApplicationAnalysis(Long applicationId ) throws IOException;
 

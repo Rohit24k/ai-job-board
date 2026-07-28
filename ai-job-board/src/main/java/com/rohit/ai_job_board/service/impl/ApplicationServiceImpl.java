@@ -1,7 +1,7 @@
 package com.rohit.ai_job_board.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.rohit.ai_job_board.dto.response.ApplicationResponseDto;
+import com.rohit.ai_job_board.dto.response.ApplicationResponse;
 import com.rohit.ai_job_board.dto.response.ResumeAnalysisResponse;
 import com.rohit.ai_job_board.entity.*;
 import com.rohit.ai_job_board.enums.ApplicationStatus;
@@ -15,8 +15,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.io.IOException;
 
@@ -37,7 +35,7 @@ public class ApplicationServiceImpl implements ApplicationService {
     private final ObjectMapper objectMapper;
 
 @Override
-public ApplicationResponseDto apply(
+public ApplicationResponse apply(
         MultipartFile file,
         Long jobId
 ) throws IOException {
@@ -69,7 +67,7 @@ public ApplicationResponseDto apply(
                     resume
             );
 
-    return ApplicationResponseDto.builder()
+    return ApplicationResponse.builder()
             .applicationId(application.getId())
             .resumeId(resume.getId())
             .matchScore(resume.getMatchScore())

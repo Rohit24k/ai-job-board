@@ -1,0 +1,43 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/ai_job_board
+    username: postgres
+    password: 1234
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+
+    show-sql: true
+
+    properties:
+      hibernate:
+        format_sql: true
+
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+server:
+  port: 8080
+
+jwt:
+  secret: c29tZV9yZWFsbHlfbG9uZ19iYXNlNjRfc2VjcmV0X2tleV9mb3Jfand0X2FwcGxpY2F0aW9u
+  expiration: 86400000
+
+gemini:
+  api:
+    key: yourkey
+
+openai:
+  api:
+    key: yourkey
+  model:
+   gpt-4.1-mini
+
+groq:
+  api:
+    key: key
+  model: llama-3.3-70b-versatile
+

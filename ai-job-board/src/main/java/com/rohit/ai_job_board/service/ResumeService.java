@@ -1,7 +1,6 @@
 package com.rohit.ai_job_board.service;
 
 import com.rohit.ai_job_board.dto.response.ResumeAnalysisResponse;
-import com.rohit.ai_job_board.enums.ApplicationStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 

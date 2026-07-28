@@ -1,6 +1,6 @@
 package com.rohit.ai_job_board.controller;
 
-import com.rohit.ai_job_board.dto.response.ApplicationResponseDto;
+import com.rohit.ai_job_board.dto.response.ApplicationResponse;
 import com.rohit.ai_job_board.service.ApplicationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -21,7 +21,7 @@ public class ApplicationController {
             value = "/apply",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE
     )
-    public ResponseEntity<ApplicationResponseDto> apply(
+    public ResponseEntity<ApplicationResponse> apply(
 
             @RequestParam MultipartFile file,
 

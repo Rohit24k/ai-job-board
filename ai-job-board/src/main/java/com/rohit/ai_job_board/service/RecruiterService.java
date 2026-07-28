@@ -6,6 +6,9 @@ import com.rohit.ai_job_board.enums.ApplicationStatus;
 
 import java.util.List;
 
+import org.springframework.stereotype.Service;
+
+@Service
 public interface RecruiterService {
 
     List<CandidateApplicationResponse> getApplications(Long jobId);
