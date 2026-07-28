@@ -23,8 +23,7 @@ public class RecruiterController {
     private RecruiterService recruiterService;
 
     @GetMapping("/jobs/{jobId}/applications")
-    public ResponseEntity<List<CandidateApplicationResponse>>
-    getApplications(@PathVariable Long jobId){
+    public ResponseEntity<List<CandidateApplicationResponse>> getApplications(@PathVariable Long jobId) {
 
         return ResponseEntity.ok(
                 recruiterService.getApplications(jobId));
@@ -35,6 +34,5 @@ public class RecruiterController {
 
         return ResponseEntity.ok(
                 recruiterService.dashboard());
-
     }
 }

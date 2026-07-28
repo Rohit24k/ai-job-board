@@ -1,26 +1,24 @@
 package com.rohit.ai_job_board.service.impl;
 
+import com.rohit.ai_job_board.dto.response.ApplicantResponse;
 import com.rohit.ai_job_board.dto.response.CandidateApplicationResponse;
 import com.rohit.ai_job_board.dto.response.RecentApplicationDto;
 import com.rohit.ai_job_board.dto.response.RecruiterDashboardResponse;
 import com.rohit.ai_job_board.entity.Jobs;
-import com.rohit.ai_job_board.entity.Resume;
 import com.rohit.ai_job_board.entity.User;
 import com.rohit.ai_job_board.enums.ApplicationStatus;
 import com.rohit.ai_job_board.enums.JobStatus;
 import com.rohit.ai_job_board.exception.ResourceAlreadyExistsException;
 import com.rohit.ai_job_board.repository.ApplicationRepository;
 import com.rohit.ai_job_board.repository.JobRepository;
-import com.rohit.ai_job_board.repository.ResumeRepository;
 import com.rohit.ai_job_board.repository.UserRepository;
 import com.rohit.ai_job_board.service.RecruiterService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-
+import com.rohit.ai_job_board.entity.Application;
 
 import java.util.List;
 
@@ -28,168 +26,160 @@ import java.util.List;
 @RequiredArgsConstructor
 public class RecruiterServiceImpl implements RecruiterService {
 
-    private final ResumeRepository resumeRepository;
-    @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private JobRepository jobRepository;
-    @Autowired
-    private ApplicationRepository applicationRepository;
+        @Autowired
+        private UserRepository userRepository;
+        @Autowired
+        private JobRepository jobRepository;
+        @Autowired
+        private ApplicationRepository applicationRepository;
 
-    @Override
-    public List<CandidateApplicationResponse> getApplications(Long jobId) {
+        @Override
+        public List<ApplicantResponse> getApplicants(Long jobId) {
 
-        // return applicationRepository
-        //         .findByCandidateOrderByAppliedAtDesc(jobId)
-        //         .stream()
-        //         .map(r -> CandidateApplicationResponse.builder()
-        //                 .resumeId(r.getId())
-        //                 .candidateName(r.getCandidateName())
-        //                 .matchScore(r.getMatchScore())
-        //                 .summary(r.getSummary())
-        //                 .uploadedAt(r.getUploadedAt())
-        //                 .status(r.getStatus())
-        //                 .build())
-        //         .toList();
-        return null;
-    }
-private User getLoggedInCandidate() {
+                Jobs job = jobRepository.findById(jobId)
+                                .orElseThrow(() -> new ResourceAlreadyExistsException("Job not found"));
 
-    Authentication authentication =
-            SecurityContextHolder
-                    .getContext()
-                    .getAuthentication();
+                return applicationRepository
+                                .findByJobOrderByAppliedAtDesc(job)
+                                .stream()
+                                .map(application -> ApplicantResponse.builder()
+                                                .applicationId(application.getId())
+                                                .candidateId(application.getCandidate().getId())
+                                                .candidateName(application.getCandidate().getFirstName() + " "
+                                                                + application.getCandidate().getLastName())
+                                                .email(application.getCandidate().getEmail())
+                                                .matchScore(application.getResume().getMatchScore())
+                                                .status(application.getStatus().toString())
+                                                .appliedAt(application.getAppliedAt())
+                                                .build())
+                                .toList();
+        }
 
-    String email = authentication.getName();
+        private User getLoggedInCandidate() {
 
-    return userRepository
-            .findByEmail(email)
-            .orElseThrow(() ->
-                    new ResourceAlreadyExistsException(
-                            "Candidate not found"
-                    ));
-}
-    @Override
-    public void updateApplicationStatus(
-            Long applicationId,
-            ApplicationStatus status) {
+                Authentication authentication = SecurityContextHolder
+                                .getContext()
+                                .getAuthentication();
 
-        String email = SecurityContextHolder.getContext()
-                .getAuthentication()
-                .getName();
+                String email = authentication.getName();
 
-       User recruiter = userRepository.findByEmail(email)
-               .orElseThrow(() -> new ResourceAlreadyExistsException("User Not Found"));
+                return userRepository
+                                .findByEmail(email)
+                                .orElseThrow(() -> new ResourceAlreadyExistsException(
+                                                "Candidate not found"));
+        }
 
-       
-        Resume application =
-                resumeRepository.findById(applicationId)
-                        .orElseThrow(() ->
-                                new ResourceAlreadyExistsException(
-                                        "Application not found"));
-       if (!application.getJob()
-               .getRecruiter()
-               .getId()
-               .equals(recruiter.getId())) {
+        @Override
+        public void updateApplicationStatus(
+                        Long applicationId,
+                        ApplicationStatus status) {
 
-           throw new AccessDeniedException(
-                   "You are not allowed to update this application.");
-       }
+                Application application = applicationRepository
+                                .findById(applicationId)
+                                .orElseThrow(() -> new ResourceAlreadyExistsException(
+                                                "Application not found"));
 
-        application.setStatus(status);
-        resumeRepository.save(application);
+                application.setStatus(status);
 
+                applicationRepository.save(application);
+        }
 
+        @Override
+        public RecruiterDashboardResponse dashboard() {
 
-       application.setStatus(status);
+                // Logged-in recruiter
+                String email = SecurityContextHolder
+                                .getContext()
+                                .getAuthentication()
+                                .getName();
 
-       resumeRepository.save(application);
+                User recruiter = userRepository.findByEmail(email)
+                                .orElseThrow(() -> new ResourceAlreadyExistsException("Recruiter not found"));
 
-    }
+                Long recruiterId = recruiter.getId();
 
-    @Override
-    public RecruiterDashboardResponse dashboard() {
+                long totalJobs = jobRepository.countByRecruiterId(recruiterId);
 
-        // Logged-in recruiter
-        String email = SecurityContextHolder
-                .getContext()
-                .getAuthentication()
-                .getName();
+                long activeJobs = jobRepository.countByRecruiterIdAndStatus(
+                                recruiterId,
+                                JobStatus.OPEN);
 
-        User recruiter = userRepository.findByEmail(email)
-                .orElseThrow(() ->
-                        new ResourceAlreadyExistsException("Recruiter not found"));
+                long closedJobs = jobRepository.countByRecruiterIdAndStatus(
+                                recruiterId,
+                                JobStatus.CLOSED);
 
-        Long recruiterId = recruiter.getId();
+                long totalApplications = applicationRepository.countByJobRecruiterId(recruiterId);
 
-        long totalJobs =
-                jobRepository.countByRecruiterId(recruiterId);
+                long shortlisted = applicationRepository.countByJobRecruiterIdAndStatus(
+                                recruiterId,
+                                ApplicationStatus.SHORTLISTED);
 
-        long activeJobs =
-                jobRepository.countByRecruiterIdAndStatus(
-                        recruiterId,
-                        JobStatus.OPEN);
+                long interview = applicationRepository.countByJobRecruiterIdAndStatus(
+                                recruiterId,
+                                ApplicationStatus.INTERVIEW);
 
-        long closedJobs =
-                jobRepository.countByRecruiterIdAndStatus(
-                        recruiterId,
-                        JobStatus.CLOSED);
+                long rejected = applicationRepository.countByJobRecruiterIdAndStatus(
+                                recruiterId,
+                                ApplicationStatus.REJECTED);
 
-        long totalApplications =
-                resumeRepository.countByJobRecruiterId(recruiterId);
+                long hired = applicationRepository.countByJobRecruiterIdAndStatus(
+                                recruiterId,
+                                ApplicationStatus.HIRED);
 
-        long shortlisted =
-                resumeRepository.countByJobRecruiterIdAndStatus(
-                        recruiterId,
-                        ApplicationStatus.SHORTLISTED);
+                Double average = applicationRepository.averageScore(recruiterId);
 
-        long interview =
-                resumeRepository.countByJobRecruiterIdAndStatus(
-                        recruiterId,
-                        ApplicationStatus.INTERVIEW);
+                List<Application> applications = applicationRepository.findTop5ByJobRecruiterIdOrderByAppliedAtDesc(recruiterId);
 
-        long rejected =
-                resumeRepository.countByJobRecruiterIdAndStatus(
-                        recruiterId,
-                        ApplicationStatus.REJECTED);
+                List<RecentApplicationDto> recent = applications.stream()
+                                .map(a -> RecentApplicationDto.builder()
+                                                .applicationId(a.getId())
+                                                .candidateName(
+                                                                a.getCandidate().getFirstName()
+                                                                                + " "
+                                                                                + a.getCandidate().getLastName())
+                                                .jobTitle(a.getJob().getTitle())
+                                                .matchScore(a.getResume().getMatchScore())
+                                                .status(a.getStatus())
+                                                .build())
+                                .toList();
 
-        long hired =
-                resumeRepository.countByJobRecruiterIdAndStatus(
-                        recruiterId,
-                        ApplicationStatus.HIRED);
+                return RecruiterDashboardResponse.builder()
+                                .totalJobs(totalJobs)
+                                .activeJobs(activeJobs)
+                                .closedJobs(closedJobs)
+                                .totalApplications(totalApplications)
+                                .shortlisted(shortlisted)
+                                .interview(interview)
+                                .rejected(rejected)
+                                .hired(hired)
+                                .averageMatchScore(
+                                                average == null ? 0.0 : average)
+                                .recentApplications(recent)
+                                .build();
+        }
 
-        Double average =
-                resumeRepository.averageScore(recruiterId);
+        @Override
+        public List<CandidateApplicationResponse> getApplications(Long jobId) {
 
-        List<Resume> resumes =
-                resumeRepository
-                        .findTop5ByJobRecruiterIdOrderByUploadedAtDesc(
-                                recruiterId);
+                Jobs job = jobRepository.findById(jobId)
+                                .orElseThrow(() -> new ResourceAlreadyExistsException("Job not found"));
 
-        List<RecentApplicationDto> recent =
-                resumes.stream()
-                        .map(r -> RecentApplicationDto.builder()
-                                .applicationId(r.getId())
-                                .candidateName(r.getCandidate().getFirstName())
-                                .jobTitle(r.getJob().getTitle())
-                                .matchScore(r.getMatchScore())
-                                .status(r.getStatus())
-                                .build())
-                        .toList();
-
-        return RecruiterDashboardResponse.builder()
-                .totalJobs(totalJobs)
-                .activeJobs(activeJobs)
-                .closedJobs(closedJobs)
-                .totalApplications(totalApplications)
-                .shortlisted(shortlisted)
-                .interview(interview)
-                .rejected(rejected)
-                .hired(hired)
-                .averageMatchScore(
-                        average == null ? 0.0 : average)
-                .recentApplications(recent)
-                .build();
-    }
+                return applicationRepository
+                                .findByJobOrderByAppliedAtDesc(job)
+                                .stream()
+                                .map(application -> CandidateApplicationResponse.builder()
+                                                .resumeId(application.getResume().getId())
+                                                .candidateName(
+                                                                application.getCandidate().getFirstName()
+                                                                                + " "
+                                                                                + application.getCandidate()
+                                                                                                .getLastName())
+                                                .matchScore(application.getResume().getMatchScore())
+                                                .summary(application.getResume().getSummary())
+                                                .status(application.getStatus())
+                                                .uploadedAt(application.getAppliedAt())
+                                                .build())
+                                .toList();
+        }
 
 }

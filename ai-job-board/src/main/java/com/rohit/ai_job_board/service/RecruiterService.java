@@ -1,5 +1,6 @@
 package com.rohit.ai_job_board.service;
 
+import com.rohit.ai_job_board.dto.response.ApplicantResponse;
 import com.rohit.ai_job_board.dto.response.CandidateApplicationResponse;
 import com.rohit.ai_job_board.dto.response.RecruiterDashboardResponse;
 import com.rohit.ai_job_board.enums.ApplicationStatus;
@@ -14,6 +15,7 @@ public interface RecruiterService {
     List<CandidateApplicationResponse> getApplications(Long jobId);
 
     void updateApplicationStatus(Long applicationId, ApplicationStatus status);
+    List<ApplicantResponse> getApplicants(Long jobId);
 
     RecruiterDashboardResponse dashboard();
 }

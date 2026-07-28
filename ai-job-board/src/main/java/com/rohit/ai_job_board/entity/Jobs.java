@@ -52,4 +52,6 @@ public class Jobs {
 
     @UpdateTimestamp
     private LocalDateTime updatedAt;
+
+    private String companyName;
 }

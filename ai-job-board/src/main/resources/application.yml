@@ -38,6 +38,6 @@ openai:
 
 groq:
   api:
-    key: key
+    key: ${GROQ_SECRET_KEY}
   model: llama-3.3-70b-versatile
 

@@ -2,6 +2,7 @@ package com.rohit.ai_job_board.repository;
 
 import com.rohit.ai_job_board.dto.response.JobResponse;
 import com.rohit.ai_job_board.entity.Jobs;
+import com.rohit.ai_job_board.entity.User;
 import com.rohit.ai_job_board.enums.JobStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -41,5 +42,7 @@ public interface JobRepository extends JpaRepository<Jobs, Long> {
             )
             """)
     Page<Jobs> searchJobs( String keyword,  Pageable pageable);
+
+    List<Jobs> findByRecruiter(User recruiter);
 
 }

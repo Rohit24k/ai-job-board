@@ -1,9 +1,7 @@
 package com.rohit.ai_job_board.entity;
 
-import com.rohit.ai_job_board.enums.ApplicationStatus;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 
@@ -47,9 +45,9 @@ public class Resume {
     @Column(columnDefinition = "TEXT")
     private String suggestions;
 
-    @ManyToOne
-    @JoinColumn(name = "job_id")
-    private Jobs job;
+    // @ManyToOne
+    // @JoinColumn(name = "job_id")
+    // private Jobs job;
 
     @ManyToOne
     @JoinColumn(name = "candidate_id")
@@ -57,6 +55,6 @@ public class Resume {
 
     private LocalDateTime uploadedAt;
 
-    @Enumerated(EnumType.STRING)
-    private ApplicationStatus status;
+    // @Enumerated(EnumType.STRING)
+    // private ApplicationStatus status;
 }

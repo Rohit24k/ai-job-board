@@ -1,12 +1,18 @@
 package com.rohit.ai_job_board.controller;
 
+import com.rohit.ai_job_board.dto.request.UpdateApplicationStatusRequest;
+import com.rohit.ai_job_board.dto.response.ApplicantResponse;
+import com.rohit.ai_job_board.dto.response.ApplicationAnalysisResponse;
 import com.rohit.ai_job_board.dto.response.ApplicationResponse;
+import com.rohit.ai_job_board.dto.response.MyApplicationResponse;
+import com.rohit.ai_job_board.dto.response.RecruiterJobResponse;
 import com.rohit.ai_job_board.service.ApplicationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import java.util.*;
 
 import java.io.IOException;
 
@@ -15,32 +21,71 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class ApplicationController {
 
-    private final ApplicationService applicationService;
+        private final ApplicationService applicationService;
 
-    @PostMapping(
-            value = "/apply",
-            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
-    )
-    public ResponseEntity<ApplicationResponse> apply(
+        @PostMapping(value = "/apply", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+        public ResponseEntity<ApplicationResponse> apply(@RequestParam MultipartFile file, @RequestParam Long jobId)
+                        throws IOException {
+                return ResponseEntity.ok(applicationService.apply(file, jobId));
+        }
 
-            @RequestParam MultipartFile file,
+        @GetMapping("/my-applications")
+        public ResponseEntity<List<MyApplicationResponse>> getMyApplications() {
 
-            @RequestParam Long jobId
+                return ResponseEntity.ok(applicationService.getMyApplications());
 
-    ) throws IOException {
+        }
 
-        return ResponseEntity.ok(
+        @GetMapping("/{applicationId}/analysis")
+        public ResponseEntity<ApplicationAnalysisResponse> getAnalysis(@PathVariable Long applicationId) {
 
-                applicationService.apply(
+                return ResponseEntity.ok(
+                                applicationService.getApplicationAnalysis(applicationId));
 
-                        file,
+        }
 
-                        jobId
+        @GetMapping("/job/{jobId}/applications")
+        public ResponseEntity<List<ApplicantResponse>> getApplicants(
 
-                )
+                        @PathVariable Long jobId
 
-        );
+        ) {
 
-    }
+                return ResponseEntity.ok(
 
+                                applicationService.getApplicants(jobId)
+
+                );
+
+        }
+
+        @GetMapping("/recruiter/jobs")
+        public ResponseEntity<List<RecruiterJobResponse>> getRecruiterJobs() {
+
+                return ResponseEntity.ok(
+
+                                applicationService.getRecruiterJobs()
+
+                );
+
+        }
+
+        @GetMapping("/recruiter/{applicationId}/analysis")
+        public ResponseEntity<ApplicationAnalysisResponse> getRecruiterAnalysis(
+                        @PathVariable Long applicationId) {
+
+                return ResponseEntity.ok(
+                                applicationService.getRecruiterApplicationAnalysis(
+                                                applicationId));
+        }
+
+        @PutMapping("/{applicationId}/status")
+        public ResponseEntity<Void> updateStatus(
+                        @PathVariable Long applicationId, @RequestBody UpdateApplicationStatusRequest request) {
+                applicationService.updateApplicationStatus( applicationId, request.getStatus());
+
+                return ResponseEntity.ok().build();
+        }
+
+        
 }
