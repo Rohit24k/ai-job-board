@@ -6,16 +6,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 
 @Service
 public interface JobService {
 
     JobResponse createJob(CreateJobRequest request);
 
-    Page<JobResponse> getAllJobs(
-            String keyword,
-            Pageable pageable);
+    Page<JobResponse> getAllJobs( String keyword, Pageable pageable);
 
     JobResponse updateJob(Long jobId, CreateJobRequest request);
 
@@ -24,4 +21,8 @@ public interface JobService {
 //    List<JobResponse> getAllJobs();
 
     JobResponse getJob(Long jobId);
+
+    JobResponse closeJob(Long id);
+
+    JobResponse reopenJob(Long id);
 }

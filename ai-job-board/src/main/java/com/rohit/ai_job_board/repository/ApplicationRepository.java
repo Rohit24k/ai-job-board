@@ -31,9 +31,9 @@ public interface ApplicationRepository extends JpaRepository<Application, Long> 
 
     long countByJobRecruiterIdAndStatus( Long recruiterId, ApplicationStatus status);
 
-      List<Application> findTop5ByJobRecruiterIdOrderByAppliedAtDesc( Long recruiterId);
+    List<Application> findTop5ByJobRecruiterIdOrderByAppliedAtDesc( Long recruiterId);
 
-        @Query(" SELECT AVG(a.resume.matchScore) FROM Application a WHERE a.job.recruiter.id = :recruiterId ")
-        Double averageScore(Long recruiterId);
+    @Query(" SELECT AVG(a.resume.matchScore) FROM Application a WHERE a.job.recruiter.id = :recruiterId ")
+    Double averageScore(Long recruiterId);
 
 }

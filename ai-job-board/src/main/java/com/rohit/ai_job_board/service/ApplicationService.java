@@ -18,10 +18,12 @@ public interface ApplicationService {
 
     List<RecruiterJobResponse> getRecruiterJobs();
 
-    List<ApplicantResponse> getApplicants(Long jobId);
+    List<CandidateApplicationResponse> getApplicants(Long jobId);
 
     ApplicationAnalysisResponse getRecruiterApplicationAnalysis(Long applicationId);
+    List<JobAnalyticsResponse> getJobAnalytics();
 
     void updateApplicationStatus( Long applicationId, ApplicationStatus status);
+    
 
 }

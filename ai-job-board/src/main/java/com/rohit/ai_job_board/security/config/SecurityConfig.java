@@ -73,6 +73,29 @@ public class SecurityConfig {
                                                                 HttpMethod.GET,
                                                                 "/api/jobs/**")
                                                 .permitAll()
+                                                .requestMatchers(
+                                                                HttpMethod.POST,
+                                                                "/api/jobs")
+                                                .hasRole("RECRUITER")
+
+                                                .requestMatchers(
+                                                                HttpMethod.PUT,
+                                                                "/api/jobs/*")
+                                                .hasRole("RECRUITER")
+                                                .requestMatchers(
+                                                                HttpMethod.PUT,
+                                                                "/api/jobs/*/close")
+                                                .hasRole("RECRUITER")
+
+                                                .requestMatchers(
+                                                                HttpMethod.PUT,
+                                                                "/api/jobs/*/open")
+                                                .hasRole("RECRUITER")
+
+                                                .requestMatchers(
+                                                                HttpMethod.DELETE,
+                                                                "/api/jobs/*")
+                                                .hasRole("RECRUITER")
 
                                                 .requestMatchers(
                                                                 HttpMethod.POST,

@@ -45,4 +45,5 @@ public interface JobRepository extends JpaRepository<Jobs, Long> {
 
     List<Jobs> findByRecruiter(User recruiter);
 
+
 }

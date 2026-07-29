@@ -1,6 +1,8 @@
 package com.rohit.ai_job_board.dto.response;
 
 
+import com.rohit.ai_job_board.enums.JobStatus;
+
 import lombok.*;
 
 @Data
@@ -15,8 +17,12 @@ public class RecruiterJobResponse {
 
     private String location;
 
+    private JobStatus status;
+
     private Integer totalApplications;
 
     private Double averageMatchScore;
+
+    
 
 }

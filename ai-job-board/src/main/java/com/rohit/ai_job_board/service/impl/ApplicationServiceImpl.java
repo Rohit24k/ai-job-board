@@ -4,7 +4,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rohit.ai_job_board.dto.response.ApplicantResponse;
 import com.rohit.ai_job_board.dto.response.ApplicationAnalysisResponse;
 import com.rohit.ai_job_board.dto.response.ApplicationResponse;
+import com.rohit.ai_job_board.dto.response.CandidateApplicationResponse;
+import com.rohit.ai_job_board.dto.response.JobAnalyticsResponse;
 import com.rohit.ai_job_board.dto.response.MyApplicationResponse;
+import com.rohit.ai_job_board.dto.response.RecruiterDashboardResponse;
 import com.rohit.ai_job_board.dto.response.RecruiterJobResponse;
 import com.rohit.ai_job_board.dto.response.ResumeAnalysisResponse;
 import com.rohit.ai_job_board.entity.*;
@@ -184,11 +187,11 @@ public class ApplicationServiceImpl implements ApplicationService {
                                                         .title(job.getTitle())
 
                                                         .location(job.getLocation())
+                                                        .status(job.getStatus())
 
                                                         .totalApplications(applications.size())
 
-                                                        .averageMatchScore(
-                                                                        calculateAverageScore(applications))
+                                                        .averageMatchScore(calculateAverageScore(applications))
 
                                                         .build();
 
@@ -199,46 +202,7 @@ public class ApplicationServiceImpl implements ApplicationService {
         }
 
         @Override
-        public void updateApplicationStatus(
-
-                        Long applicationId,
-
-                        ApplicationStatus status
-
-        ) {
-
-                String email = SecurityContextHolder
-                                .getContext()
-                                .getAuthentication()
-                                .getName();
-
-                User recruiter = userRepository
-                                .findByEmail(email)
-                                .orElseThrow(() -> new ResourceAlreadyExistsException(
-                                                "Recruiter not found"));
-
-                Application application = applicationRepository
-                                .findById(applicationId)
-                                .orElseThrow(() -> new ResourceAlreadyExistsException(
-                                                "Application not found"));
-
-                if (!application.getJob()
-                                .getRecruiter()
-                                .getId()
-                                .equals(recruiter.getId())) {
-
-                        throw new AccessDeniedException(
-                                        "You are not allowed to update this application.");
-                }
-
-                application.setStatus(status);
-
-                applicationRepository.save(application);
-
-        }
-
-        @Override
-        public List<ApplicantResponse> getApplicants(Long jobId) {
+        public List<CandidateApplicationResponse> getApplicants(Long jobId) {
 
                 User recruiter = getLoggedInUser();
 
@@ -254,21 +218,21 @@ public class ApplicationServiceImpl implements ApplicationService {
 
                                 .map(application ->
 
-                                ApplicantResponse.builder()
+                                CandidateApplicationResponse.builder()
 
                                                 .applicationId(application.getId())
-
-                                                .candidateId(application.getCandidate().getId())
-
+                                                .resumeId(application.getResume().getId())
                                                 .candidateName(application.getResume().getCandidateName())
-
                                                 .email(application.getCandidate().getEmail())
-
                                                 .matchScore(application.getResume().getMatchScore())
-
-                                                .status(application.getStatus().name())
-
-                                                .appliedAt(application.getAppliedAt())
+                                                .status(application.getStatus())
+                                                .uploadedAt(application.getAppliedAt())
+                                                .summary(application.getResume().getSummary())
+                                                .strengths(application.getResume().getStrengths())
+                                                .weaknesses(application.getResume().getWeaknesses())
+                                                .skillsFound(application.getResume().getSkillsFound())
+                                                .missingSkills(application.getResume().getMissingSkills())
+                                                .suggestions(application.getResume().getSuggestions())
 
                                                 .build()
 
@@ -276,6 +240,51 @@ public class ApplicationServiceImpl implements ApplicationService {
 
                                 .toList();
 
+        }
+
+        @Override
+        public List<JobAnalyticsResponse> getJobAnalytics() {
+
+                User recruiter = getLoggedInUser();
+                List<Jobs> jobs = jobRepository.findByRecruiter(recruiter);
+                return jobs.stream()
+
+                                .map(job -> {
+
+                                        List<Application> applications = applicationRepository.findByJob(job);
+
+                                        double averageScore = applications.stream()
+
+                                                        .map(Application::getResume)
+
+                                                        .mapToInt(Resume::getMatchScore)
+
+                                                        .average()
+
+                                                        .orElse(0);
+
+                                        return JobAnalyticsResponse.builder()
+
+                                                        .jobId(job.getId())
+
+                                                        .title(job.getTitle())
+
+                                                        .totalApplications((long) applications.size())
+
+                                                        .averageMatchScore(averageScore)
+
+                                                        .build();
+
+                                })
+
+                                .toList();
+
+        }
+
+        @Override
+        public void updateApplicationStatus(Long applicationId, ApplicationStatus status) {
+                // TODO Auto-generated method stub
+                throw new UnsupportedOperationException("Unimplemented method 'updateApplicationStatus'");
         }
 
         private MyApplicationResponse mapToMyApplicationDto(Application application) {

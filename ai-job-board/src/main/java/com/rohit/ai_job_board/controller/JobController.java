@@ -19,54 +19,68 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class JobController {
 
-    private final JobService jobService;
+        private final JobService jobService;
 
-    @PostMapping
-    public ResponseEntity<JobResponse> createJob(
-            @Valid @RequestBody CreateJobRequest request) {
+        @PostMapping
+        public ResponseEntity<JobResponse> createJob(
+                        @Valid @RequestBody CreateJobRequest request) {
 
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(jobService.createJob(request));
-    }
+                return ResponseEntity.status(HttpStatus.CREATED)
+                                .body(jobService.createJob(request));
+        }
 
-    @GetMapping
-    public ResponseEntity<Page<JobResponse>> getJobs(
-            @RequestParam(required = false) String keyword,
-            @PageableDefault(
-                    size = 10,
-                    sort = "createdAt",
-                    direction = Sort.Direction.DESC)
-            Pageable pageable){
+        @GetMapping
+        public ResponseEntity<Page<JobResponse>> getJobs(
+                        @RequestParam(required = false) String keyword,
+                        @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
 
-        return ResponseEntity.ok(
-                jobService.getAllJobs(
-                        keyword,
-                        pageable));
-    }
+                return ResponseEntity.ok(
+                                jobService.getAllJobs(
+                                                keyword,
+                                                pageable));
+        }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<JobResponse> getJob(
+        @GetMapping("/{id}")
+        public ResponseEntity<JobResponse> getJob(
 
-            @PathVariable Long id){
+                        @PathVariable Long id) {
 
-        return ResponseEntity.ok(
+                return ResponseEntity.ok(
 
-                jobService.getJob(id));
+                                jobService.getJob(id));
 
-    }
+        }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<JobResponse> updateJob(@PathVariable Long id,
-            @Valid @RequestBody CreateJobRequest request) {
+        @PutMapping("/{id}")
+        public ResponseEntity<JobResponse> updateJob(@PathVariable Long id,
+                        @Valid @RequestBody CreateJobRequest request) {
 
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(jobService.updateJob(id,request));
-    }
+                return ResponseEntity.status(HttpStatus.CREATED)
+                                .body(jobService.updateJob(id, request));
+        }
 
-    @DeleteMapping("/{id}")
-    public ApiResponse<?> deleteJob(@PathVariable Long id) {
-        jobService.deleteJob(id);
-        return new ApiResponse<>(id,"Deleted Success");
-    }
+        @DeleteMapping("/{id}")
+        public ApiResponse<?> deleteJob(@PathVariable Long id) {
+                jobService.deleteJob(id);
+                return new ApiResponse<>(id, "Deleted Success");
+        }
+
+        @PutMapping("/{id}/close")
+        public ResponseEntity<JobResponse> closeJob(
+                        @PathVariable Long id) {
+
+                return ResponseEntity.ok(
+                                jobService.closeJob(id));
+
+        }
+
+        @PutMapping("/{id}/open")
+        public ResponseEntity<JobResponse> reopenJob(
+                        @PathVariable Long id) {
+
+                return ResponseEntity.ok(
+                                jobService.reopenJob(id));
+
+        }
 
 }

@@ -18,4 +18,8 @@ public interface RecruiterService {
     List<ApplicantResponse> getApplicants(Long jobId);
 
     RecruiterDashboardResponse dashboard();
+
+    // RecruiterDashboardResponse getDashboard(Integer days);
+
+    
 }

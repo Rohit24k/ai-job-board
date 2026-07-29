@@ -20,6 +20,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import com.rohit.ai_job_board.entity.Application;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -128,7 +129,8 @@ public class RecruiterServiceImpl implements RecruiterService {
 
                 Double average = applicationRepository.averageScore(recruiterId);
 
-                List<Application> applications = applicationRepository.findTop5ByJobRecruiterIdOrderByAppliedAtDesc(recruiterId);
+                List<Application> applications = applicationRepository
+                                .findTop5ByJobRecruiterIdOrderByAppliedAtDesc(recruiterId);
 
                 List<RecentApplicationDto> recent = applications.stream()
                                 .map(a -> RecentApplicationDto.builder()
@@ -168,6 +170,9 @@ public class RecruiterServiceImpl implements RecruiterService {
                                 .findByJobOrderByAppliedAtDesc(job)
                                 .stream()
                                 .map(application -> CandidateApplicationResponse.builder()
+                                 .applicationId(application.getId())
+                                 .resumeId(application.getResume().getId())
+                                 .email(application.getCandidate().getEmail())
                                                 .resumeId(application.getResume().getId())
                                                 .candidateName(
                                                                 application.getCandidate().getFirstName()
@@ -178,8 +183,28 @@ public class RecruiterServiceImpl implements RecruiterService {
                                                 .summary(application.getResume().getSummary())
                                                 .status(application.getStatus())
                                                 .uploadedAt(application.getAppliedAt())
+                                                .summary(application.getResume().getSummary())
+                                                .strengths(application.getResume().getStrengths())
+                                                .weaknesses(application.getResume().getWeaknesses())
+                                                .skillsFound(application.getResume().getSkillsFound())
+                                                .missingSkills(application.getResume().getMissingSkills())
+                                                .suggestions(application.getResume().getSuggestions())
+                                                .status(application.getStatus())
+                                                .uploadedAt(application.getAppliedAt())
+                                                
                                                 .build())
                                 .toList();
         }
+
+        // @Override
+        // public RecruiterDashboardResponse getDashboard(Integer days) {
+        // LocalDateTime fromDate = null;
+
+        // if (days != null) {
+
+        // fromDate = LocalDateTime.now().minusDays(days);
+
+        // }
+        // }
 
 }

@@ -4,6 +4,8 @@ import com.rohit.ai_job_board.dto.request.UpdateApplicationStatusRequest;
 import com.rohit.ai_job_board.dto.response.ApplicantResponse;
 import com.rohit.ai_job_board.dto.response.ApplicationAnalysisResponse;
 import com.rohit.ai_job_board.dto.response.ApplicationResponse;
+import com.rohit.ai_job_board.dto.response.CandidateApplicationResponse;
+import com.rohit.ai_job_board.dto.response.JobAnalyticsResponse;
 import com.rohit.ai_job_board.dto.response.MyApplicationResponse;
 import com.rohit.ai_job_board.dto.response.RecruiterJobResponse;
 import com.rohit.ai_job_board.service.ApplicationService;
@@ -45,7 +47,7 @@ public class ApplicationController {
         }
 
         @GetMapping("/job/{jobId}/applications")
-        public ResponseEntity<List<ApplicantResponse>> getApplicants(
+        public ResponseEntity<List<CandidateApplicationResponse>> getApplicants(
 
                         @PathVariable Long jobId
 
@@ -82,10 +84,17 @@ public class ApplicationController {
         @PutMapping("/{applicationId}/status")
         public ResponseEntity<Void> updateStatus(
                         @PathVariable Long applicationId, @RequestBody UpdateApplicationStatusRequest request) {
-                applicationService.updateApplicationStatus( applicationId, request.getStatus());
+                applicationService.updateApplicationStatus(applicationId, request.getStatus());
 
                 return ResponseEntity.ok().build();
         }
 
-        
+        @GetMapping("/recruiter/job-analytics")
+        public ResponseEntity<List<JobAnalyticsResponse>> getJobAnalytics() {
+
+                return ResponseEntity.ok(
+                                applicationService.getJobAnalytics());
+
+        }
+
 }
