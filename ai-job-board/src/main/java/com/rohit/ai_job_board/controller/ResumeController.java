@@ -1,23 +1,48 @@
-// package com.rohit.ai_job_board.controller;
+package com.rohit.ai_job_board.controller;
 
-// import com.rohit.ai_job_board.dto.request.UpdateApplicationStatusRequest;
-// import com.rohit.ai_job_board.dto.response.ResumeAnalysisResponse;
-// import com.rohit.ai_job_board.service.RecruiterService;
-// import com.rohit.ai_job_board.service.ResumeService;
-// import lombok.RequiredArgsConstructor;
-// import org.springframework.beans.factory.annotation.Autowired;
-// import org.springframework.http.ResponseEntity;
-// import org.springframework.web.bind.annotation.*;
-// import org.springframework.web.multipart.MultipartFile;
-// import io.swagger.v3.oas.annotations.Operation;
-// import io.swagger.v3.oas.annotations.Parameter;
-// import org.springframework.http.MediaType;
-// import java.io.IOException;
+import lombok.RequiredArgsConstructor;
 
-// @RestController
-// @RequestMapping("/api/resumes")
-// @RequiredArgsConstructor
-// public class ResumeController {
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import com.rohit.ai_job_board.entity.Resume;
+import com.rohit.ai_job_board.exception.ResourceAlreadyExistsException;
+import com.rohit.ai_job_board.repository.ResumeRepository;
+
+@RestController
+@RequestMapping("/api/resumes")
+@RequiredArgsConstructor
+public class ResumeController {
+
+private final ResumeRepository resumeRepository;
+@GetMapping("/{resumeId}/file")
+public ResponseEntity<Resource> getResumeFile( @PathVariable Long resumeId ) throws IOException {
+
+    Resume resume = resumeRepository.findById(resumeId).orElseThrow(() -> new ResourceAlreadyExistsException("Resume not found"));
+
+    Path path = Paths.get(resume.getFilePath());
+    Resource resource = new UrlResource(path.toUri());
+    if (!resource.exists()) {
+        throw new RuntimeException("Resume file not found");
+    }
+
+    return ResponseEntity.ok()
+            .contentType(MediaType.APPLICATION_PDF)
+            .header(
+                    HttpHeaders.CONTENT_DISPOSITION,
+                    "inline; filename=\"" + resume.getFileName() + "\""
+            )
+            .body(resource);
+}
+
+
 
 //     private final ResumeService resumeService;
 //     @Autowired
@@ -72,4 +97,6 @@
 
 //     }
 
-// }
+
+
+}

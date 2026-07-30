@@ -2,6 +2,8 @@ package com.rohit.ai_job_board.service;
 
 import com.rohit.ai_job_board.dto.response.*;
 import com.rohit.ai_job_board.enums.ApplicationStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import org.springframework.web.multipart.MultipartFile;
 
@@ -24,6 +26,8 @@ public interface ApplicationService {
     List<JobAnalyticsResponse> getJobAnalytics();
 
     void updateApplicationStatus( Long applicationId, ApplicationStatus status);
+
+    Page<CandidateApplicationResponse> getApplications( Long jobId, Pageable pageable );
     
 
 }

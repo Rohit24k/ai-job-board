@@ -5,6 +5,8 @@ import com.rohit.ai_job_board.entity.Jobs;
 import com.rohit.ai_job_board.entity.User;
 import com.rohit.ai_job_board.enums.ApplicationStatus;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -20,6 +22,7 @@ public interface ApplicationRepository extends JpaRepository<Application, Long> 
     List<Application> findByCandidateOrderByAppliedAtDesc(User candidate);
 
     List<Application> findByJobOrderByAppliedAtDesc(Jobs job);
+    Page<Application> findByJob( Jobs job, Pageable pageable );
     
     long countByJob(Jobs job);
 

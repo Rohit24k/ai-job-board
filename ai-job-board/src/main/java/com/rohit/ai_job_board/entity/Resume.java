@@ -57,4 +57,7 @@ public class Resume {
 
     // @Enumerated(EnumType.STRING)
     // private ApplicationStatus status;
+
+    private String filePath;
+
 }

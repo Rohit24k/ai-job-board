@@ -1,7 +1,6 @@
 package com.rohit.ai_job_board.controller;
 
 import com.rohit.ai_job_board.dto.request.UpdateApplicationStatusRequest;
-import com.rohit.ai_job_board.dto.response.ApplicantResponse;
 import com.rohit.ai_job_board.dto.response.ApplicationAnalysisResponse;
 import com.rohit.ai_job_board.dto.response.ApplicationResponse;
 import com.rohit.ai_job_board.dto.response.CandidateApplicationResponse;
@@ -10,6 +9,11 @@ import com.rohit.ai_job_board.dto.response.MyApplicationResponse;
 import com.rohit.ai_job_board.dto.response.RecruiterJobResponse;
 import com.rohit.ai_job_board.service.ApplicationService;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -46,39 +50,27 @@ public class ApplicationController {
 
         }
 
+        // @GetMapping("/job/{jobId}/applications")
+        // public ResponseEntity<List<CandidateApplicationResponse>> getApplicants(
+        // @PathVariable Long jobId ) {
+        // return ResponseEntity.ok( applicationService.getApplicants(jobId) );
+        // }
+
         @GetMapping("/job/{jobId}/applications")
-        public ResponseEntity<List<CandidateApplicationResponse>> getApplicants(
-
-                        @PathVariable Long jobId
-
-        ) {
-
-                return ResponseEntity.ok(
-
-                                applicationService.getApplicants(jobId)
-
-                );
-
+        public ResponseEntity<Page<CandidateApplicationResponse>> getApplications( @PathVariable Long jobId,
+             @PageableDefault(size = 10, sort = "appliedAt", direction = Sort.Direction.DESC) Pageable pageable ) {
+               return ResponseEntity.ok( applicationService.getApplications( jobId, pageable) );
         }
 
         @GetMapping("/recruiter/jobs")
         public ResponseEntity<List<RecruiterJobResponse>> getRecruiterJobs() {
-
-                return ResponseEntity.ok(
-
-                                applicationService.getRecruiterJobs()
-
-                );
+                return ResponseEntity.ok(applicationService.getRecruiterJobs());
 
         }
 
         @GetMapping("/recruiter/{applicationId}/analysis")
-        public ResponseEntity<ApplicationAnalysisResponse> getRecruiterAnalysis(
-                        @PathVariable Long applicationId) {
-
-                return ResponseEntity.ok(
-                                applicationService.getRecruiterApplicationAnalysis(
-                                                applicationId));
+        public ResponseEntity<ApplicationAnalysisResponse> getRecruiterAnalysis(@PathVariable Long applicationId) {
+                return ResponseEntity.ok(applicationService.getRecruiterApplicationAnalysis(applicationId));
         }
 
         @PutMapping("/{applicationId}/status")

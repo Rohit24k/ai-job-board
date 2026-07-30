@@ -1,7 +1,11 @@
 package com.rohit.ai_job_board.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.rohit.ai_job_board.dto.response.ApplicantResponse;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+
 import com.rohit.ai_job_board.dto.response.ApplicationAnalysisResponse;
 import com.rohit.ai_job_board.dto.response.ApplicationResponse;
 import com.rohit.ai_job_board.dto.response.CandidateApplicationResponse;
@@ -19,6 +23,9 @@ import com.rohit.ai_job_board.service.GroqService;
 import com.rohit.ai_job_board.util.PdfUtil;
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.boot.autoconfigure.batch.BatchProperties.Job;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -386,9 +393,20 @@ public class ApplicationServiceImpl implements ApplicationService {
                         User candidate)
                         throws IOException {
 
+                Path uploadDir = Paths.get("uploads", "resumes");
+                Files.createDirectories(uploadDir);
+                String uniqueFileName = UUID.randomUUID() + "-" + file.getOriginalFilename();
+                Path savedFile = uploadDir.resolve(uniqueFileName);
+
+                Files.copy(
+                                file.getInputStream(),
+                                savedFile,
+                                StandardCopyOption.REPLACE_EXISTING);
+
                 Resume resume = Resume.builder()
                                 .candidateName(response.getCandidateName())
                                 .fileName(file.getOriginalFilename())
+                                .filePath(savedFile.toString())
                                 .resumeText(resumeText)
                                 .summary(response.getSummary())
                                 .matchScore(response.getMatchScore())
@@ -493,6 +511,50 @@ public class ApplicationServiceImpl implements ApplicationService {
                                 job.getDescription(),
                                 job.getRequiredSkills(),
                                 resume);
+        }
+
+        @Override
+        public Page<CandidateApplicationResponse> getApplications(Long jobId, Pageable pageable) {
+
+                Jobs job = jobRepository.findById(jobId)
+                                .orElseThrow(() -> new ResourceAlreadyExistsException("Job not found"));
+
+                Page<Application> applications = applicationRepository.findByJob(job, pageable);
+                return applications.map(application ->
+
+                CandidateApplicationResponse.builder()
+
+                                .applicationId(application.getId())
+                                .resumeId(application.getResume().getId())
+
+                                .candidateName(
+                                                application.getCandidate().getFirstName()
+                                                                + " "
+                                                                + application.getCandidate().getLastName())
+
+                                .email(application.getCandidate().getEmail())
+
+                                .matchScore(application.getResume().getMatchScore())
+
+                                .summary(application.getResume().getSummary())
+
+                                .strengths(application.getResume().getStrengths())
+
+                                .weaknesses(application.getResume().getWeaknesses())
+
+                                .skillsFound(application.getResume().getSkillsFound())
+
+                                .missingSkills(application.getResume().getMissingSkills())
+
+                                .suggestions(application.getResume().getSuggestions())
+
+                                .status(application.getStatus())
+
+                                .uploadedAt(application.getAppliedAt())
+
+                                .build()
+
+                );
         }
 
 }
