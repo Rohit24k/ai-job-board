@@ -30,8 +30,8 @@ public class ApplicationController {
         private final ApplicationService applicationService;
 
         @PostMapping(value = "/apply", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-        public ResponseEntity<ApplicationResponse> apply(@RequestParam MultipartFile file, @RequestParam Long jobId)
-                        throws IOException {
+        public ResponseEntity<ApplicationResponse> apply( @RequestParam MultipartFile file, 
+                                                          @RequestParam Long jobId) throws IOException {
                 return ResponseEntity.ok(applicationService.apply(file, jobId));
         }
 

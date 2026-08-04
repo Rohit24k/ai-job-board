@@ -53,29 +53,13 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Override
     public AuthenticationResponse login(LoginRequest request) {
-
-        authenticationManager.authenticate(
-
-                new UsernamePasswordAuthenticationToken(
-
-                        request.getEmail(),
-
-                        request.getPassword()
-
-                )
-
-        );
-
-        User user = repository.findByEmail(request.getEmail())
-
-                .orElseThrow(() ->
-
-                        new UsernameNotFoundException("User not found"));
-
+       authenticationManager.authenticate( new UsernamePasswordAuthenticationToken( request.getEmail(), request.getPassword() ) );
+        System.out.print("In login service impl");
+        User user = repository.findByEmail( request.getEmail() ).orElseThrow( () -> new UsernameNotFoundException("User not found") );
+        System.out.print(user);
         String token = jwtService.generateToken(user);
 
         return buildResponse(user, token);
-
     }
 
     private AuthenticationResponse buildResponse(User user,

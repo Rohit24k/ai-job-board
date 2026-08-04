@@ -5,13 +5,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.time.LocalDateTime;
 
 import com.rohit.ai_job_board.dto.response.ApplicationAnalysisResponse;
 import com.rohit.ai_job_board.dto.response.ApplicationResponse;
 import com.rohit.ai_job_board.dto.response.CandidateApplicationResponse;
 import com.rohit.ai_job_board.dto.response.JobAnalyticsResponse;
 import com.rohit.ai_job_board.dto.response.MyApplicationResponse;
-import com.rohit.ai_job_board.dto.response.RecruiterDashboardResponse;
 import com.rohit.ai_job_board.dto.response.RecruiterJobResponse;
 import com.rohit.ai_job_board.dto.response.ResumeAnalysisResponse;
 import com.rohit.ai_job_board.entity.*;
@@ -20,10 +20,10 @@ import com.rohit.ai_job_board.exception.ResourceAlreadyExistsException;
 import com.rohit.ai_job_board.repository.*;
 import com.rohit.ai_job_board.service.ApplicationService;
 import com.rohit.ai_job_board.service.GroqService;
+import com.rohit.ai_job_board.service.ResumeStorageService;
 import com.rohit.ai_job_board.util.PdfUtil;
 import lombok.RequiredArgsConstructor;
 
-import org.springframework.boot.autoconfigure.batch.BatchProperties.Job;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
@@ -52,23 +52,18 @@ public class ApplicationServiceImpl implements ApplicationService {
 
         private final ObjectMapper objectMapper;
 
+        private final ResumeStorageService resumeStorageService;
+
         @Override
-        public ApplicationResponse apply(
-                        MultipartFile file,
-                        Long jobId) throws IOException {
+        public ApplicationResponse apply(MultipartFile file, Long jobId) throws IOException {
 
                 User candidate = getLoggedInUser();
-
                 Jobs job = getJob(jobId);
-
                 validateApplication(candidate, job);
 
                 String resumeText = PdfUtil.extractText(file.getBytes());
-
                 ResumeAnalysisResponse analysis = groqService.analyzeResume(buildPrompt(job, resumeText));
-
-                Resume resume = saveResume(file, resumeText, analysis, candidate);
-
+                Resume resume = saveResumeCloudinary(file, resumeText, analysis, candidate);
                 Application application = saveApplication(candidate, job, resume);
 
                 return ApplicationResponse.builder()
@@ -390,23 +385,23 @@ public class ApplicationServiceImpl implements ApplicationService {
         }
 
         private Resume saveResume(MultipartFile file, String resumeText, ResumeAnalysisResponse response,
-                        User candidate)
-                        throws IOException {
+                        User candidate) throws IOException {
 
                 Path uploadDir = Paths.get("uploads", "resumes");
                 Files.createDirectories(uploadDir);
                 String uniqueFileName = UUID.randomUUID() + "-" + file.getOriginalFilename();
                 Path savedFile = uploadDir.resolve(uniqueFileName);
+                String filePath = resumeStorageService.uploadResume(file);
 
-                Files.copy(
-                                file.getInputStream(),
+                Files.copy(file.getInputStream(),
                                 savedFile,
                                 StandardCopyOption.REPLACE_EXISTING);
 
                 Resume resume = Resume.builder()
                                 .candidateName(response.getCandidateName())
                                 .fileName(file.getOriginalFilename())
-                                .filePath(savedFile.toString())
+                                // .filePath(savedFile.toString())
+                                .filePath(filePath)
                                 .resumeText(resumeText)
                                 .summary(response.getSummary())
                                 .matchScore(response.getMatchScore())
@@ -428,18 +423,38 @@ public class ApplicationServiceImpl implements ApplicationService {
 
         }
 
+        private Resume saveResumeCloudinary( MultipartFile file, String resumeText, 
+                  ResumeAnalysisResponse response, User candidate) throws IOException {
+
+                String filePath = resumeStorageService.uploadResume(file);
+
+                Resume resume = Resume.builder()
+                                .candidateName(response.getCandidateName())
+                                .fileName(file.getOriginalFilename())
+                                .filePath(filePath)
+                                .resumeText(resumeText)
+                                .summary(response.getSummary())
+                                .matchScore(response.getMatchScore())
+                                .candidate(candidate)
+                                .uploadedAt(LocalDateTime.now())
+                                .build();
+
+                resume.setStrengths(objectMapper.writeValueAsString(response.getStrengths()));
+                resume.setWeaknesses(objectMapper.writeValueAsString(response.getWeaknesses()));
+                resume.setSkillsFound(objectMapper.writeValueAsString(response.getSkillsFound()));
+                resume.setMissingSkills(objectMapper.writeValueAsString(response.getMissingSkills()));
+                resume.setSuggestions(objectMapper.writeValueAsString(response.getSuggestions()));
+
+                return resumeRepository.save(resume);
+        }
+
         private double calculateAverageScore(List<Application> applications) {
 
                 return applications.stream()
-
                                 .map(Application::getResume)
-
                                 .mapToInt(Resume::getMatchScore)
-
                                 .average()
-
                                 .orElse(0);
-
         }
 
         private Application saveApplication(User candidate, Jobs job, Resume resume) {
@@ -526,35 +541,21 @@ public class ApplicationServiceImpl implements ApplicationService {
 
                                 .applicationId(application.getId())
                                 .resumeId(application.getResume().getId())
-
                                 .candidateName(
                                                 application.getCandidate().getFirstName()
                                                                 + " "
                                                                 + application.getCandidate().getLastName())
-
                                 .email(application.getCandidate().getEmail())
-
                                 .matchScore(application.getResume().getMatchScore())
-
                                 .summary(application.getResume().getSummary())
-
                                 .strengths(application.getResume().getStrengths())
-
                                 .weaknesses(application.getResume().getWeaknesses())
-
                                 .skillsFound(application.getResume().getSkillsFound())
-
                                 .missingSkills(application.getResume().getMissingSkills())
-
                                 .suggestions(application.getResume().getSuggestions())
-
                                 .status(application.getStatus())
-
                                 .uploadedAt(application.getAppliedAt())
-
-                                .build()
-
-                );
+                                .build());
         }
 
 }

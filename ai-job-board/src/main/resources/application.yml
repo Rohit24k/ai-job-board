@@ -12,7 +12,7 @@ spring:
     hibernate:
       ddl-auto: update
 
-    show-sql: true
+    show-sql: false
 
     properties:
       hibernate:
@@ -45,3 +45,7 @@ groq:
     key: ${GROQ_SECRET_KEY}
   model: llama-3.3-70b-versatile
 
+cloudinary:
+  cloud-name: ${CLOUDINARY_CLOUD_NAME}
+  api-key: ${CLOUDINARY_API_KEY}
+  api-secret: ${CLOUDINARY_API_SECRET}
